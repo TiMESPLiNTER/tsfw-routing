@@ -6,7 +6,7 @@ namespace timesplinter\tsfw\routing;
  * @author Pascal Muenst <dev@timesplinter.ch>
  * @copyright Copyright (c) 2014, TiMESPLiNTER Webdevelopment
  */
-class Router {
+class Router implements RouterInterface {
 	protected $routes;
 	protected $paramKeywords;
 	
