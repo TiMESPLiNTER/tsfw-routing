@@ -1,0 +1,27 @@
+{
+    "name": "timesplinter/tsfw-routing",
+    "type": "library",
+    "description": "PHP library to abstract common tasks with strings, array, etc.",
+    "keywords": ["tsFramework", "tsfw", "routing"],
+    "homepage": "http://github.com/TiMESPLiNTER/tsfw-routing",
+    "license": "LGPL",
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "timesplinter\\": "src/timesplinter/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Pascal Muenst",
+            "email": "dev@timesplinter.ch",
+            "homepage": "http://www.timesplinter.ch",
+            "role": "Company"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
+    }
+}
