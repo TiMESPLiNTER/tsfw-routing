@@ -1,0 +1,17 @@
+<phpunit bootstrap="bootstrap.php" colors="true">
+    <testsuites>
+        <testsuite name="tsfw-routing">
+            <directory>tsfw-routing</directory>
+        </testsuite>
+    </testsuites>
+    
+    <filter>
+        <whitelist addUncoveredFilesFromWhitelist="false">
+            <directory suffix=".php">..</directory>
+            <exclude>
+                <directory suffix=".php">../vendor/</directory>
+                <directory suffix=".php">../tests/</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>
