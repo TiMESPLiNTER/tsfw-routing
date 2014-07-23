@@ -41,10 +41,12 @@ class Route {
 	}
 
 	/**
-	 * @param int $index
-	 * @return string|null
+	 * Get a specific parameters value
+	 * @param int|string $index Parameter index (generic) or parameter name (associative)
+	 * @return int|double|string|null Parameters value if parameter exists else null
 	 */
-	public function getParam($index) {
+	public function getParam($index)
+	{
 		return array_key_exists($index, $this->params)?$this->params[$index]:null;
 	}
 
