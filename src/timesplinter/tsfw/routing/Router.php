@@ -25,7 +25,7 @@ class Router implements RouterInterface {
 	/**
 	 * @param string $uri The URI to find a route object for
 	 * @param array $httpMethods
-	 * @return array The matched route objects as an array
+	 * @return array The matched (and filtered) route objects as an array
 	 */
 	public function fromURI($uri, array $httpMethods = array(Route::HTTP_METHOD_ANY)) 
 	{
@@ -41,13 +41,17 @@ class Router implements RouterInterface {
 			return (in_array(Route::HTTP_METHOD_ANY, $routeMappingMethods) === true || count(array_intersect($routeMappingMethods, $httpMethods)) > 0);
 		});
 	}
-	
+
+	/**
+	 * @param $str
+	 * @return array The matched routes as an array
+	 */
 	protected function match($str) 
 	{
 		$matchedRoutes = array();
 		
 		foreach($this->routes as $id => $r) {
-			if(isset($r['params']) === true)
+			if(isset($r['params']) === true && (isset($r['prepared']) === false || $r['prepared'] === false))
 				$this->preparePattern($r);
 			
 			/** @var array $r */
@@ -77,6 +81,7 @@ class Router implements RouterInterface {
 	}
 
 	/**
+	 * Creates a Route object from route data given as array and its potential parameters
 	 * @param array $routeArray
 	 * @param array $params
 	 * @return Route
@@ -89,7 +94,11 @@ class Router implements RouterInterface {
 			$params
 		);
 	}
-	
+
+	/**
+	 * Converts a pattern with associative parameters to a valid regex pattern
+	 * @param array $routeData
+	 */
 	protected function preparePattern(array &$routeData) 
 	{
 		$replace = array();
@@ -99,6 +108,7 @@ class Router implements RouterInterface {
 		}
 
 		$routeData['pattern'] = strtr($routeData['pattern'], $replace);
+		$routeData['prepared'] = true;
 	}
 
 	/**
