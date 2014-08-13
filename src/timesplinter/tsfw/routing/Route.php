@@ -14,11 +14,19 @@ class Route {
 	const HTTP_METHOD_DELETE = 'DELETE';
 	const HTTP_METHOD_PUT = 'PUT';
 	
+	protected $name;
 	protected $pattern;
 	protected $params;
 	protected $mapping;
-	
-	public function __construct($pattern, array $mapping, array $params = array()) {
+
+	/**
+	 * @param string $name
+	 * @param string $pattern
+	 * @param array $mapping
+	 * @param array $params
+	 */
+	public function __construct($name, $pattern, array $mapping, array $params = array()) {
+		$this->name = $name;
 		$this->pattern = $pattern;
 		$this->params = $params;
 		$this->mapping = $mapping;
@@ -56,6 +64,14 @@ class Route {
 	public function getMapping()
 	{
 		return $this->mapping;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
 	}
 }
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace timesplinter\tsfw\routing;
+use timesplinter\tsfw\routing\dispatcher\Dispatcher;
 
 /**
  * @author Pascal Muenst <dev@timesplinter.ch>
@@ -8,18 +9,12 @@ namespace timesplinter\tsfw\routing;
  */
 class Router implements RouterInterface {
 	protected $routes;
-	protected $paramKeywords;
+	protected $dispatcher;
 	
-	public function __construct() 
+	public function __construct(Dispatcher $dispatcher) 
 	{
+		$this->dispatcher = $dispatcher;
 		$this->routes = array();
-		$this->paramKeywords = array(
-			'numeric' => '\d+(?:\.\d+)?',
-			'int' => '\d+',
-			'alphabetic' => '[A-Za-z]+',
-			'alphanumeric' => '[A-Za-z0-9]+',
-			'string' => '\.+?'
-		);
 	}
 
 	/**
@@ -29,55 +24,28 @@ class Router implements RouterInterface {
 	 */
 	public function fromURI($uri, array $httpMethods = array(Route::HTTP_METHOD_ANY)) 
 	{
-		$matchedRoutes = $this->match($uri);
+		$matchedRoute = $this->match($uri);
 		
 		if(in_array(Route::HTTP_METHOD_ANY, $httpMethods) === true)
-			return $matchedRoutes;
+			return $matchedRoute;
 		
-		return array_filter($matchedRoutes, function(Route $route) use ($httpMethods) {
-			$routeMapping = $route->getMapping();
-			$routeMappingMethods = array_keys($routeMapping);
-			
-			return (in_array(Route::HTTP_METHOD_ANY, $routeMappingMethods) === true || count(array_intersect($routeMappingMethods, $httpMethods)) > 0);
-		});
+		$routeMapping = $matchedRoute->getMapping();
+		$routeMappingMethods = array_keys($routeMapping);
+		
+		return (in_array(Route::HTTP_METHOD_ANY, $routeMappingMethods) === true || count(array_intersect($routeMappingMethods, $httpMethods)) > 0)?$matchedRoute:false;
 	}
 
 	/**
 	 * @param $str
-	 * @return array The matched routes as an array
+	 * @return Route|false The matched routes as an array
 	 */
 	protected function match($str) 
 	{
-		$matchedRoutes = array();
+		if(($routeInfo = $this->dispatcher->match($str)) === false)
+			return false;
 		
-		foreach($this->routes as $id => $r) {
-			if(isset($r['params']) === true && (isset($r['prepared']) === false || $r['prepared'] === false))
-				$this->preparePattern($r);
-			
-			/** @var array $r */
-			if(preg_match('/^' . str_replace('/', '\/', $r['pattern']) . '$/', $str, $matches) === 0)
-				continue;
-
-			array_shift($matches);
-			
-			if(isset($r['params']) === true)
-				$matches = array_combine(array_keys($r['params']), $matches);
-			
-			$params = array();
-						
-			foreach($matches as $k => $param) {
-				if(is_numeric($param) === true)
-					$params[$k] = (($intParam = (int)$param) == $param)?$intParam:(double)$param;
-				else
-					$params[$k] = $param;
-			}
-			
-			$route = $this->createRouteFromArray($r, $params);
-
-			$matchedRoutes[$id] = $route;
-		}
-
-		return $matchedRoutes;
+		
+		return $this->createRouteFromArray($this->routes[$routeInfo['index']], $routeInfo['params']);
 	}
 
 	/**
@@ -89,26 +57,11 @@ class Router implements RouterInterface {
 	protected function createRouteFromArray(array $routeArray, array $params = array()) 
 	{
 		return new Route(
+			isset($routeArray['name'])?$routeArray['name']:null,
 			$routeArray['pattern'], 
 			$routeArray['mapping'],
 			$params
 		);
-	}
-
-	/**
-	 * Converts a pattern with associative parameters to a valid regex pattern
-	 * @param array $routeData
-	 */
-	protected function preparePattern(array &$routeData) 
-	{
-		$replace = array();
-			
-		foreach($routeData['params'] as $name => $pattern) {
-			$replace['{%' . $name . '%}'] = '(' . strtr($pattern, $this->paramKeywords) . ')';
-		}
-
-		$routeData['pattern'] = strtr($routeData['pattern'], $replace);
-		$routeData['prepared'] = true;
 	}
 
 	/**
@@ -117,17 +70,8 @@ class Router implements RouterInterface {
 	 */
 	public function setRoutes(array $routes)
 	{
-		$this->routes = $routes;
-	}
-
-	/**
-	 * Registers a new parameter keyword and its corresponding regex pattern
-	 * @param string $keyword Name of the keyword
-	 * @param string $regex The replacement regex 
-	 */
-	public function registerParamKeyword($keyword, $regex)
-	{
-		$this->paramKeywords[$keyword] = $regex;
+		$this->routes = array_values($routes);
+		$this->dispatcher->prepare($this->routes);
 	}
 }
 

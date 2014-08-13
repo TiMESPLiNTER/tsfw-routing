@@ -2,6 +2,7 @@
 
 namespace timesplinter\tsfw\routing\tests;
 
+use timesplinter\tsfw\routing\dispatcher\CharCountDispatcher;
 use timesplinter\tsfw\routing\Route;
 use timesplinter\tsfw\routing\Router;
 
@@ -15,72 +16,67 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 
 	protected function setUp()
 	{
-		$this->router = new Router();
+		$dispatcher = new CharCountDispatcher();
+		$dispatcher->registerRegexTranslation('hex', '[A-Fa-f0-9]{2}');
+		
+		$this->router = new Router($dispatcher);
 		$this->router->setRoutes(array(
-			'test-basic-route' => array(
+			 array(
+				'name' => 'test-basic-route',
 				'pattern' => 'basic/route',
 				'mapping' => array(
 					'GET' => 'ch.timesplinter.site.AController.aMethod'
 				)
 			),
 			
-			'test-generic-params' => array(
-				'pattern' => 'params/generic/(\d+)/view',
+			array(
+				'name' => 'test-generic-params',
+				'pattern' => 'params/generic/{item_id:\d+}/view',
 				'mapping' => array(
 					'*' => 'ch.timesplinter.site.AController.aMethod'
 				)
 			),
 			
-			'test-assoc-params' => array(
-				'pattern' => 'params/assoc/{%item_id%}/version/{%version%}',
-				'params' => array(
-					'item_id' => 'numeric',
-					'version' => '\d+\.\d+'
-				),
+			array(
+				'name' => 'test-assoc-params',
+				'pattern' => 'params/assoc/{item_id:numeric}/version/{version:\d+\.\d+}',
 				'mapping' => array(
 					'*' => 'ch.timesplinter.site.AController.aMethod'
-				)
-			),
-			
-			'test-string-param' => array(
-				'pattern' => 'params/string/{%item_id%}',
-				'params' => array(
-					'item_id' => 'alphabetic'
-				),
-				'mapping' => array(
-					'*' => 'ch.timesplinter.site.AController.aMethod'
-				)
-			),
-			
-			'test-assoc-unused-param' => array(
-				'pattern' => 'params/assoc/{%item_id%}/version/{%version%}',
-				'params' => array(
-					'item_id' => 'int'
-				),
-				'mapping' => array(
-					'*' => 'ch.timesplinter.site.AController.aMethod'
-				)
-			),
-			
-			'test-multiple-1' => array(
-				'pattern' => 'multiple/route',
-				'mapping' => array(
-					'GET' => 'ch.timesplinter.site.AController.getMethod'
-				)
-			),
-			
-			'test-multiple-2' => array(
-				'pattern' => 'multiple/route',
-				'mapping' => array(
-					'POST' => 'ch.timesplinter.site.AController.postMethod'
 				)
 			),
 
-			'test-multiple-3' => array(
+			array(
+				'name' => 'test-assoc-unused-param',
+				'pattern' => 'params/assoc/{item_id:\d+}/version/{version:.+}',
+				'mapping' => array(
+					'*' => 'ch.timesplinter.site.AController.aMethod'
+				)
+			),
+			
+			array(
+				'name' => 'test-string-param',
+				'pattern' => 'params/string/{item_id:alphabetic}',
+				'mapping' => array(
+					'*' => 'ch.timesplinter.site.AController.aMethod'
+				)
+			),
+						
+			array(
+				'name' => 'test-multiple',
 				'pattern' => 'multiple/route',
 				'mapping' => array(
 					'*' => 'ch.timesplinter.site.AController.postMethod',
-					'DELETE' => 'ch.timesplinter.site.AController.postMethod'
+					'DELETE' => 'ch.timesplinter.site.AController.postMethod',
+					'POST' => 'ch.timesplinter.site.AController.postMethod',
+					'GET' => 'ch.timesplinter.site.AController.getMethod'
+				)
+			),
+
+			array(
+				'name' => 'test-regex-translation',
+				'pattern' => 'additional/regex/{hex_code:hex}',
+				'mapping' => array(
+					'*' => 'ch.timesplinter.site.AController.postMethod'
 				)
 			)
 		));
@@ -88,100 +84,94 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testBasicRoute()
 	{
-		$expectedRoutes = array(
-			'test-basic-route' => new Route(
-				'basic/route',
-				array(
-					'GET' => 'ch.timesplinter.site.AController.aMethod'
-				),
-				array()
-			)
+		$expectedRoute = new Route(
+			'test-basic-route',
+			'basic/route',
+			array(
+				'GET' => 'ch.timesplinter.site.AController.aMethod'
+			),
+			array()
 		);
 
-		$actualRoutes = $this->router->fromURI('basic/route');
+		$actualRoute = $this->router->fromURI('basic/route');
 		
-		$this->assertEquals($expectedRoutes, $actualRoutes, 'Basic route matching');
+		$this->assertEquals($expectedRoute, $actualRoute, 'Basic route matching');
 	}
 
 	public function testNoneExistingRoute()
 	{
-		$expectedRoutes = array();
-
-		$actualRoutes = $this->router->fromURI('none/existing/route');
+		$actualRoute = $this->router->fromURI('none/existing/route');
 		
-		$this->assertEquals($expectedRoutes, $actualRoutes, 'None existing route');
+		$this->assertEquals(false, $actualRoute, 'None existing route');
 	}
 
 	public function testNumericParamsRoute()
 	{
-		$expectedRoutes = array(
-			'test-generic-params' => new Route(
-				'params/generic/(\d+)/view',
-				array(
-					'*' => 'ch.timesplinter.site.AController.aMethod'
-				),
-				array(
-					0 => 256
-				)
+		$expectedRoute = new Route(
+			'test-generic-params',
+			'params/generic/{item_id:\d+}/view',
+			array(
+				'*' => 'ch.timesplinter.site.AController.aMethod'
+			),
+			array(
+				'item_id' => 256
 			)
 		);
 		
-		$actualRoutes = $this->router->fromURI('params/generic/256/view');
+		$actualRoute = $this->router->fromURI('params/generic/256/view');
 		
-		$this->assertEquals($expectedRoutes, $actualRoutes, 'Generic parameters test');
+		$this->assertEquals($expectedRoute, $actualRoute, 'Generic parameters test');
 	}
 	
 	public function testAssociativeParamsRoute()
 	{
-		$expectedRoutes = array(
-			'test-assoc-params' => new Route(
-				'params/assoc/(\d+(?:\.\d+)?)/version/(\d+\.\d+)',
-				array(
-					'*' => 'ch.timesplinter.site.AController.aMethod'
-				),
-				array(
-					'item_id' => 256,
-					'version' => 2.3
-				)
+		$expectedRoute = new Route(
+			'test-assoc-params',
+			'params/assoc/{item_id:numeric}/version/{version:\d+\.\d+}',
+			array(
+				'*' => 'ch.timesplinter.site.AController.aMethod'
+			),
+			array(
+				'item_id' => 256,
+				'version' => 2.3
 			)
 		);
 		
 		$actualRoutes = $this->router->fromURI('params/assoc/256/version/2.3');
-
-		$this->assertEquals($expectedRoutes, $actualRoutes, 'Associative parameters test');
+		
+		$this->assertEquals($expectedRoute, $actualRoutes, 'Associative parameters test');
 	}
 	
 	public function testAssocUnusedParam()
 	{
-		$expectedRoutes = array(
-			'test-assoc-unused-param' => new Route(
-				'params/assoc/(\d+)/version/{%version%}',
-				array(
-					'*' => 'ch.timesplinter.site.AController.aMethod'
-				),
-				array(
-					'item_id' => 256
-				)
+		$expectedRoute = new Route(
+			'test-assoc-unused-param',
+			'params/assoc/{item_id:\d+}/version/{version:.+}',
+			array(
+				'*' => 'ch.timesplinter.site.AController.aMethod'
+			),
+			array(
+				'item_id' => 256,
+				'version' => 'version_string'
 			)
 		);
 
-		$actualRoutes = $this->router->fromURI('params/assoc/256/version/{%version%}');
-
-		$this->assertEquals($expectedRoutes, $actualRoutes, 'Associative not used parameter test');
+		$actualRoutes = $this->router->fromURI('params/assoc/256/version/version_string');
+		
+		$this->assertEquals($expectedRoute, $actualRoutes, 'Associative not used parameter test');
 	}
 	
 	public function testStringParamRoute()
 	{
-		$expectedRoutes = array(
-			'test-string-param' => new Route(
-					'params/string/([A-Za-z]+)',
-					array(
-						'*' => 'ch.timesplinter.site.AController.aMethod'
-					),
-					array(
-						'item_id' => 'foobar'
-					)
-				)
+		$expectedRoutes = new Route(
+			'test-string-param',
+			'params/string/{item_id:alphabetic}',
+			array(
+				'*' => 'ch.timesplinter.site.AController.aMethod'
+			),
+			array(
+				'item_id' => 'foobar'
+			)
 		);
 
 		$actualRoutes = $this->router->fromURI('params/string/foobar');
@@ -191,31 +181,16 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testMultipleMatchingRoutes()
 	{
-		$expectedRoutes = array(
-			'test-multiple-1' => new Route(
-				'multiple/route',
-				array(
-					'GET' => 'ch.timesplinter.site.AController.getMethod'
-				),
-				array()
+		$expectedRoutes = new Route(
+			'test-multiple',
+			'multiple/route',
+			array(
+				'POST' => 'ch.timesplinter.site.AController.postMethod',
+				'*' => 'ch.timesplinter.site.AController.postMethod',
+				'DELETE' => 'ch.timesplinter.site.AController.postMethod',
+				'GET' => 'ch.timesplinter.site.AController.getMethod'
 			),
-
-			'test-multiple-2' => new Route(
-				'multiple/route',
-				array(
-					'POST' => 'ch.timesplinter.site.AController.postMethod'
-				),
-				array()
-			),
-			
-			'test-multiple-3' => new Route(
-				'multiple/route',
-				array(
-					'*' => 'ch.timesplinter.site.AController.postMethod',
-					'DELETE' => 'ch.timesplinter.site.AController.postMethod'
-				),
-				array()
-			)
+			array()
 		);
 		
 		$actualRoutes = $this->router->fromURI('multiple/route');
@@ -225,23 +200,16 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testFilteredRoutes()
 	{
-		$expectedRoutes = array(
-			'test-multiple-1' => new Route(
-				'multiple/route',
-				array(
-					'GET' => 'ch.timesplinter.site.AController.getMethod'
-				),
-				array()
+		$expectedRoutes = new Route(
+			'test-multiple',
+			'multiple/route',
+			array(
+				'*' => 'ch.timesplinter.site.AController.postMethod',
+				'POST' => 'ch.timesplinter.site.AController.postMethod',
+				'DELETE' => 'ch.timesplinter.site.AController.postMethod',
+				'GET' => 'ch.timesplinter.site.AController.getMethod'
 			),
-
-			'test-multiple-3' => new Route(
-				'multiple/route',
-				array(
-					'*' => 'ch.timesplinter.site.AController.postMethod',
-					'DELETE' => 'ch.timesplinter.site.AController.postMethod'
-				),
-				array()
-			)
+			array()
 		);
 
 		$actualRoutes = $this->router->fromURI('multiple/route', array(
@@ -249,6 +217,25 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 		));
 
 		$this->assertEquals($expectedRoutes, $actualRoutes, 'Filtered routes for GET');
+	}
+	
+	public function testAdditionalRegexTranslation() {
+		$expectedRoute = new Route(
+			'test-regex-translation',
+			'additional/regex/{hex_code:hex}',
+			array(
+				'*' => 'ch.timesplinter.site.AController.postMethod'
+			),
+			array(
+				'hex_code' => '2C'
+			)
+		);
+
+		$actualRoute = $this->router->fromURI('additional/regex/2C');
+		$this->assertEquals($expectedRoute, $actualRoute, 'Check new regex translation');
+
+		$actualRoute = $this->router->fromURI('additional/regex/XY');
+		$this->assertEquals(false, $actualRoute, 'Let regex translation fail');
 	}
 }
 

@@ -9,26 +9,27 @@ use timesplinter\tsfw\routing\Route;
  */
 class RouteTest extends \PHPUnit_Framework_TestCase 
 {
-	public function testGetParamGeneric()
+	public function testGeneralGetters()
 	{
 		$route = new Route(
+			'route-name',
 			'test/route',
 			array(
 				'*' => 'ch.timesplinter.site-Acontroller.aMethod'
 			),
 			array(
-				0 => 256
+				'item_id' => 256
 			)
 		);
 		
-		$this->assertEquals(256, $route->getParam(0), 'Get existing parameter');
-		$this->assertEquals(null, $route->getParam(1), 'Get not existing parameter');
-		$this->assertEquals(array(0 => 256), $route->getParams(), 'Get all parameters');
+		$this->assertEquals('route-name', $route->getName(), 'Get route name');
+		$this->assertEquals('test/route', $route->getPattern(), 'Get pattern');
 	}
 
 	public function testGetParamAssoc()
 	{
 		$route = new Route(
+			null,
 			'test/route',
 			array(
 				'*' => 'ch.timesplinter.site-Acontroller.aMethod'
