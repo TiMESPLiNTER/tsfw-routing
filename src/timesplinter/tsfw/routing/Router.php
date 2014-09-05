@@ -1,6 +1,7 @@
 <?php
 
 namespace timesplinter\tsfw\routing;
+
 use timesplinter\tsfw\routing\dispatcher\Dispatcher;
 
 /**
@@ -24,7 +25,8 @@ class Router implements RouterInterface {
 	 */
 	public function fromURI($uri, array $httpMethods = array(Route::HTTP_METHOD_ANY)) 
 	{
-		$matchedRoute = $this->match($uri);
+		if(($matchedRoute = $this->match($uri)) === false)
+			return 404;
 		
 		if(in_array(Route::HTTP_METHOD_ANY, $httpMethods) === true)
 			return $matchedRoute;
@@ -32,7 +34,7 @@ class Router implements RouterInterface {
 		$routeMapping = $matchedRoute->getMapping();
 		$routeMappingMethods = array_keys($routeMapping);
 		
-		return (in_array(Route::HTTP_METHOD_ANY, $routeMappingMethods) === true || count(array_intersect($routeMappingMethods, $httpMethods)) > 0)?$matchedRoute:false;
+		return (in_array(Route::HTTP_METHOD_ANY, $routeMappingMethods) === true || count(array_intersect($routeMappingMethods, $httpMethods)) > 0)?$matchedRoute:405;
 	}
 
 	/**

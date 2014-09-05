@@ -94,7 +94,6 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 		);
 
 		$actualRoute = $this->router->fromURI('basic/route');
-		
 		$this->assertEquals($expectedRoute, $actualRoute, 'Basic route matching');
 	}
 
@@ -102,7 +101,13 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 	{
 		$actualRoute = $this->router->fromURI('none/existing/route');
 		
-		$this->assertEquals(false, $actualRoute, 'None existing route');
+		$this->assertEquals(404, $actualRoute, 'None existing route');
+	}
+	
+	public function testMethodNotAllowed() {
+		$methodNotAllowedRoute = $this->router->fromURI('basic/route', array(Route::HTTP_METHOD_POST));
+		
+		$this->assertEquals(405, $methodNotAllowedRoute, 'Basic route match but method not allowed');
 	}
 
 	public function testNumericParamsRoute()
@@ -235,7 +240,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals($expectedRoute, $actualRoute, 'Check new regex translation');
 
 		$actualRoute = $this->router->fromURI('additional/regex/XY');
-		$this->assertEquals(false, $actualRoute, 'Let regex translation fail');
+		$this->assertEquals(404, $actualRoute, 'Let regex translation fail');
 	}
 }
 
