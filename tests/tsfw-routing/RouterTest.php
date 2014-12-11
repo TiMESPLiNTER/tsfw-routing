@@ -10,7 +10,8 @@ use timesplinter\tsfw\routing\Router;
  * @author Pascal Muenst <dev@timesplinter.ch>
  * @copyright Copyright (c) 2014, TiMESPLiNTER Webdevelopment
  */
-class RouterTest extends \PHPUnit_Framework_TestCase {
+class RouterTest extends \PHPUnit_Framework_TestCase
+{
 	/** @var  Router */
 	protected $router;
 

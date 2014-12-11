@@ -6,7 +6,8 @@ namespace timesplinter\tsfw\routing;
  * @author Pascal Muenst <dev@timesplinter.ch>
  * @copyright Copyright (c) 2014, TiMESPLiNTER Webdevelopment
  */
-class Route {
+class Route
+{
 	const HTTP_METHOD_POST = 'POST';
 	const HTTP_METHOD_GET = 'GET';
 	const HTTP_METHOD_ANY = '*';
@@ -25,7 +26,8 @@ class Route {
 	 * @param array $mapping
 	 * @param array $params
 	 */
-	public function __construct($name, $pattern, array $mapping, array $params = array()) {
+	public function __construct($name, $pattern, array $mapping, array $params = array())
+	{
 		$this->name = $name;
 		$this->pattern = $pattern;
 		$this->params = $params;

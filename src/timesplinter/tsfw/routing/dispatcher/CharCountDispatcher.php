@@ -6,13 +6,15 @@ namespace timesplinter\tsfw\routing\dispatcher;
  * @author Pascal Muenst <dev@timesplinter.ch>
  * @copyright Copyright (c) 2014, TiMESPLiNTER Webdevelopment
  */
-class CharCountDispatcher implements Dispatcher {
+class CharCountDispatcher implements Dispatcher
+{
 	protected $routesRegex;
 	protected $routesCount;
 	protected $routesParams;
 	protected $regexTranslations;
 
-	public function __construct() {
+	public function __construct()
+	{
 		$this->regexTranslations = array(
 			'numeric' => '\d+(?:\.\d+)?',
 			'int' => '\d+',
@@ -20,6 +22,7 @@ class CharCountDispatcher implements Dispatcher {
 			'alphanumeric' => '[A-Za-z0-9]+',
 			'string' => '.+?'
 		);
+		
 		$this->routesParams = array();
 	}
 	

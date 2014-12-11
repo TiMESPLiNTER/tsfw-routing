@@ -8,7 +8,8 @@ use timesplinter\tsfw\routing\dispatcher\Dispatcher;
  * @author Pascal Muenst <dev@timesplinter.ch>
  * @copyright Copyright (c) 2014, TiMESPLiNTER Webdevelopment
  */
-class Router implements RouterInterface {
+class Router implements RouterInterface
+{
 	protected $routes;
 	protected $dispatcher;
 	
@@ -21,6 +22,7 @@ class Router implements RouterInterface {
 	/**
 	 * @param string $uri The URI to find a route object for
 	 * @param array $httpMethods
+	 * 
 	 * @return array The matched (and filtered) route objects as an array
 	 */
 	public function fromURI($uri, array $httpMethods = array(Route::HTTP_METHOD_ANY)) 
@@ -39,21 +41,23 @@ class Router implements RouterInterface {
 
 	/**
 	 * @param $str
+	 * 
 	 * @return Route|false The matched routes as an array
 	 */
 	protected function match($str) 
 	{
 		if(($routeInfo = $this->dispatcher->match($str)) === false)
 			return false;
-		
-		
+				
 		return $this->createRouteFromArray($this->routes[$routeInfo['index']], $routeInfo['params']);
 	}
 
 	/**
 	 * Creates a Route object from route data given as array and its potential parameters
+	 * 
 	 * @param array $routeArray
 	 * @param array $params
+	 * 
 	 * @return Route
 	 */
 	protected function createRouteFromArray(array $routeArray, array $params = array()) 
@@ -68,6 +72,7 @@ class Router implements RouterInterface {
 
 	/**
 	 * Sets the available routes to match against
+	 * 
 	 * @param array $routes Available routes to match against
 	 */
 	public function setRoutes(array $routes)

@@ -6,7 +6,8 @@ namespace timesplinter\tsfw\routing\dispatcher;
  * @author Pascal Muenst <dev@timesplinter.ch>
  * @copyright Copyright (c) 2014, TiMESPLiNTER Webdevelopment
  */
-interface Dispatcher {
+interface Dispatcher
+{
 	/**
 	 * This method gets called every time when routes of the Router get updated
 	 * @param array $routes The new updated routes
